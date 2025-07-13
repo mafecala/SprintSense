@@ -1,55 +1,45 @@
-# gesture_control.py
 import cv2
 import mediapipe as mp
-import time
 
 class GestureController:
     def __init__(self, sprint_state):
         self.sprint_state = sprint_state
-        self.mp_hands = mp.solutions.hands
-        self.hands = self.mp_hands.Hands(
-    static_image_mode=False,
-    max_num_hands=1,
-    min_detection_confidence=0.5,
-    min_tracking_confidence=0.5
-)
-
-        self.drawing = mp.solutions.drawing_utils
-        self.is_drawing = False
-        self.drawing_points = []
+        self.hands = mp.solutions.hands.Hands(min_detection_confidence=0.7, min_tracking_confidence=0.7)
+        self.frame_count = 0
+        self.cooldown = 15
 
     def process_frame(self, frame):
-        image_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-        results = self.hands.process(image_rgb)
+        self.frame_count += 1
         h, w, _ = frame.shape
-        overlay = frame.copy()
+        rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        results = self.hands.process(rgb)
 
         if results.multi_hand_landmarks:
-            hand = results.multi_hand_landmarks[0]
-            self.drawing.draw_landmarks(overlay, hand, self.mp_hands.HAND_CONNECTIONS)
-            index = hand.landmark[self.mp_hands.HandLandmark.INDEX_FINGER_TIP]
-            y = int(index.y * h)
+            for hand in results.multi_hand_landmarks:
+                index_tip = hand.landmark[8]
+                x = int(index_tip.x * w)
+                y = int(index_tip.y * h)
+                cv2.circle(frame, (x, y), 12, (0, 255, 255), -1)
 
-            self.sprint_state.seleccionar_tarea_por_posicion(y)
+                if self.frame_count % self.cooldown != 0:
+                    continue
 
-            thumb = hand.landmark[self.mp_hands.HandLandmark.THUMB_TIP]
-            dist = ((index.x - thumb.x)**2 + (index.y - thumb.y)**2)**0.5
-            if dist < 0.05:  # gesto de pinza
-                self.sprint_state.marcar_completada()
+                if self.sprint_state.modo_seleccion:
+                    if 10 <= x <= 200 and 10 <= y <= 50:
+                        self.sprint_state.eliminar_tarea()
+                    elif 220 <= x <= 360 and 10 <= y <= 50:
+                        self.sprint_state.iniciar_edicion()
 
-            # Dibujo con dedos
-            ix, iy = int(index.x * w), int(index.y * h)
-            if dist < 0.05:
-                self.drawing_points.append((ix, iy))
-                self.is_drawing = True
-            else:
-                self.is_drawing = False
-                self.drawing_points.append(None)
+                if 380 <= x <= 520 and 10 <= y <= 50:
+                    self.sprint_state.toggle_modo_dibujo()
 
-        # Dibujar líneas
-        for i in range(1, len(self.drawing_points)):
-            pt1, pt2 = self.drawing_points[i - 1], self.drawing_points[i]
-            if pt1 and pt2:
-                cv2.line(overlay, pt1, pt2, (0, 255, 0), 3)
+                if 540 <= x <= 700 and 10 <= y <= 50:
+                    self.sprint_state.iniciar_creacion()
 
-        return cv2.addWeighted(overlay, 0.7, frame, 0.3, 0)
+                if self.sprint_state.modo_seleccion and 100 <= y <= 100 + len(self.sprint_state.tareas) * 30:
+                    index = (y - 100) // 30
+                    tareas = list(self.sprint_state.tareas.keys())
+                    if 0 <= index < len(tareas):
+                        self.sprint_state.seleccionada = tareas[index]
+
+        return frame

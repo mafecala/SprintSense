@@ -1,5 +1,3 @@
-# sprint_state.py
-
 class SprintState:
     def __init__(self):
         self.tareas = {
@@ -8,17 +6,52 @@ class SprintState:
             "Tarea 3": "To Do"
         }
         self.seleccionada = None
+        self.modo_dibujo = False
+        self.modo_crear = False
+        self.editando = False
+        self.nuevo_texto = ""
+
+    @property
+    def modo_seleccion(self):
+        return not self.modo_dibujo
+
+    def toggle_modo_dibujo(self):
+        self.modo_dibujo = not self.modo_dibujo
+        self.modo_crear = False
+        self.editando = False
+        self.nuevo_texto = ""
+        self.seleccionada = None
+
+    def iniciar_creacion(self):
+        self.modo_crear = True
+        self.editando = False
+        self.nuevo_texto = ""
+
+    def crear_nueva_tarea(self):
+        if self.nuevo_texto.strip():
+            self.tareas[self.nuevo_texto.strip()] = "To Do"
+        self.modo_crear = False
+        self.nuevo_texto = ""
+
+    def iniciar_edicion(self):
+        if self.seleccionada:
+            self.editando = True
+            self.modo_crear = False
+            self.nuevo_texto = self.seleccionada
+
+    def confirmar_edicion(self):
+        if self.seleccionada and self.nuevo_texto.strip():
+            estado = self.tareas[self.seleccionada]
+            del self.tareas[self.seleccionada]
+            self.tareas[self.nuevo_texto.strip()] = estado
+        self.editando = False
+        self.nuevo_texto = ""
+
+    def eliminar_tarea(self):
+        if self.seleccionada:
+            del self.tareas[self.seleccionada]
+            self.seleccionada = None
 
     def marcar_completada(self):
-        if self.seleccionada and self.tareas.get(self.seleccionada) != "Done":
+        if self.seleccionada:
             self.tareas[self.seleccionada] = "Done"
-
-    def tareas_completadas(self):
-        return {k: v for k, v in self.tareas.items() if v == "Done"}
-
-    def seleccionar_tarea_por_posicion(self, y):
-        index = (y - 100) // 30
-        if 0 <= index < len(self.tareas):
-            self.seleccionada = list(self.tareas.keys())[index]
-        else:
-            self.seleccionada = None
