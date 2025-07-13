@@ -12,7 +12,7 @@ def guardar_sesion(frame, sprint_state):
             f.write(f"{t}: {e}\n")
 
 def main():
-    cap = cv2.VideoCapture(0)
+    cap = cv2.VideoCapture(1)
     detector = PersonDetector()
     state = SprintState()
     controller = GestureController(state)
