@@ -1,17 +1,6 @@
 
 
-# Informe Final – Sistema de Interacción Visual sin Contacto
-
-
-### Datos de la estudiante
-
--   **Nombre completo:** María Fernanda Cala Rodríguez
-    
--   **Número de documento:** 1027522940
-    
--   **Correo institucional:** mcalar@unal.edu.co
-      
-
+# Informe Final – SprintSense
 
 ## 🧩 Requisitos del Proyecto
 
