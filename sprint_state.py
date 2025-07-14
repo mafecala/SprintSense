@@ -2,7 +2,7 @@ class SprintState:
     def __init__(self):
         self.tareas = {
             "Tarea 1": "To Do",
-            "Tarea 2": "In Progress",
+            "Tarea 2": "To Do",
             "Tarea 3": "To Do"
         }
         self.seleccionada = None
@@ -17,6 +17,7 @@ class SprintState:
 
     def toggle_modo_dibujo(self):
         self.modo_dibujo = not self.modo_dibujo
+        self.modo_seleccion = not self.modo_dibujo
         self.modo_crear = False
         self.editando = False
         self.nuevo_texto = ""
